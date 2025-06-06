@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  keycloak:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      KEYCLOAK_ADMIN: admin-user # Changed from Dockerfile default
+      KEYCLOAK_ADMIN_PASSWORD: strong-password # Changed from Dockerfile default
+      KC_PROXY: edge # Necessary when Keycloak is behind a reverse proxy
+    ports:
+      - "8080:8080" # Map host port 8080 to Keycloak's port 8080
+    networks:
+      - keycloak-net
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80" # Map host port 80 to Nginx's port 80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro # Mount custom nginx configuration
+    depends_on:
+      - keycloak
+    networks:
+      - keycloak-net
+
+networks:
+  keycloak-net:
+    driver: bridge
